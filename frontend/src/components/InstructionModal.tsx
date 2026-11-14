@@ -1,0 +1,43 @@
+import { motion } from "framer-motion";
+import { X } from "lucide-react";
+import type { Recommendation } from "../types";
+
+interface Props { rec: Recommendation; onClose: () => void }
+
+export default function InstructionModal({ rec, onClose }: Props) {
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/20 p-4 backdrop-blur-sm"
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="w-full max-w-md rounded-4xl bg-canvas p-8 shadow-xl"
+        initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <h3 className="text-xl font-semibold leading-snug">{rec.title}</h3>
+          <button onClick={onClose} aria-label="Fermer" className="rounded-full p-1 text-muted hover:bg-card">
+            <X size={20} />
+          </button>
+        </div>
+        <ol className="space-y-4">
+          {(rec.instructions ?? []).map((step, i) => (
+            <motion.li
+              key={i}
+              className="flex gap-4"
+              initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.12 }}
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-card text-sm font-medium">
+                {i + 1}
+              </span>
+              <span className="pt-0.5 text-[15px] leading-relaxed text-charcoal">{step}</span>
+            </motion.li>
+          ))}
+        </ol>
+        <p className="mt-8 text-center text-sm text-muted">Pose ton téléphone. Ce moment t'appartient.</p>
+      </motion.div>
+    </motion.div>
+  );
+}
