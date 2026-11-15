@@ -12,12 +12,15 @@ export default function InstructionModal({ rec, onClose }: Props) {
       onClick={onClose}
     >
       <motion.div
-        className="w-full max-w-md rounded-4xl bg-canvas p-8 shadow-xl"
+        role="dialog"
+        aria-modal="true"
+        aria-label={rec.title}
+        className="w-full max-w-md rounded-2xl bg-surface p-8 shadow-xl"
         initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 30, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-6 flex items-start justify-between gap-4">
-          <h3 className="text-xl font-semibold leading-snug">{rec.title}</h3>
+          <h3 className="font-serif text-2xl leading-snug text-ink">{rec.title}</h3>
           <button onClick={onClose} aria-label="Fermer" className="rounded-full p-1 text-muted hover:bg-card">
             <X size={20} />
           </button>
@@ -29,14 +32,14 @@ export default function InstructionModal({ rec, onClose }: Props) {
               className="flex gap-4"
               initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.12 }}
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-card text-sm font-medium">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line font-serif text-sm text-ink">
                 {i + 1}
               </span>
               <span className="pt-0.5 text-[15px] leading-relaxed text-charcoal">{step}</span>
             </motion.li>
           ))}
         </ol>
-        <p className="mt-8 text-center text-sm text-muted">Pose ton téléphone. Ce moment t'appartient.</p>
+        <p className="mt-8 text-center font-serif text-lg italic text-muted">Pose ton téléphone. Ce moment t'appartient.</p>
       </motion.div>
     </motion.div>
   );

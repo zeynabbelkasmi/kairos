@@ -1,89 +1,126 @@
 ﻿import { useState } from "react";
-import { motion } from "framer-motion";
-import { MapPin, Home, Play, ExternalLink, Trees, Palette, BookOpen } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { MapPin, Play, ExternalLink, Trees, Palette, BookOpen, Check, Star } from "lucide-react";
 import type { Recommendation, TagColor } from "../types";
 
-const TAG_BG: Record<TagColor, string> = {
-  sauge: "bg-accent-sauge",
-  peche: "bg-accent-peche",
-  lilas: "bg-accent-lilas",
-};
-const FALLBACK_GRADIENT: Record<TagColor, string> = {
-  sauge: "from-accent-sauge to-card",
-  peche: "from-accent-peche to-card",
-  lilas: "from-accent-lilas to-card",
+// Chaque catégorie a sa teinte : bande latérale, icône, étiquette.
+const CATEGORY: Record<TagColor, { hue: string; tint: string; Icon: typeof Trees }> = {
+  sauge: { hue: "#5F7D5A", tint: "#DCE5D6", Icon: Trees },
+  peche: { hue: "#A86A28", tint: "#EFE0C9", Icon: Palette },
+  lilas: { hue: "#6E6388", tint: "#E3DCEC", Icon: BookOpen },
 };
 
-const ICON: Record<TagColor, typeof Trees> = { sauge: Trees, peche: Palette, lilas: BookOpen };
+const sentenceCase = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
+const formatDistance = (m: number) =>
+  m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1).replace(".", ",")} km`;
 
 interface Props { rec: Recommendation; index: number; onStart: (r: Recommendation) => void; onDone: (r: Recommendation) => void }
 
 export default function KairosCard({ rec, index, onStart, onDone }: Props) {
   const [imgError, setImgError] = useState(false);
-  const color: TagColor = rec.tag_color in TAG_BG ? rec.tag_color : "sauge";
+  const reduceMotion = useReducedMotion();
+  const color: TagColor = rec.tag_color in CATEGORY ? rec.tag_color : "sauge";
+  const { hue, tint, Icon } = CATEGORY[color];
+  const TagIcon = rec.is_place ? MapPin : Icon;
+  // Google préfixe souvent l'adresse par le nom du lieu : on ne le répète pas.
+  const address = rec.location_name.startsWith(`${rec.title}, `)
+    ? rec.location_name.slice(rec.title.length + 2)
+    : rec.location_name;
+  const hours = rec.opening_hours ?? "";
+  const isOpen = /^ouvert/i.test(hours);
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 30 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.15, duration: 0.6, ease: "easeOut" }}
-      className="flex flex-col overflow-hidden rounded-4xl bg-card p-3"
+      transition={{ delay: index * 0.1, duration: 0.5, ease: "easeOut" }}
+      className="relative flex flex-col overflow-hidden rounded-xl bg-surface"
     >
-      <div className="aspect-[4/3] overflow-hidden rounded-3xl">
-        {imgError || !rec.image_url ? (
-          <div className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${FALLBACK_GRADIENT[color]}`}>
-            {(() => { const Icon = ICON[color]; return <Icon size={56} strokeWidth={1.25} className="text-charcoal/50" />; })()}
-          </div>
-        ) : (
-          <img
-            src={rec.image_url}
-            alt={rec.title}
-            loading="lazy"
-            onError={() => setImgError(true)}
-            className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
-          />
-        )}
-      </div>
+      <span aria-hidden className="absolute inset-y-0 left-0 w-1" style={{ backgroundColor: hue }} />
 
       {rec.is_place && (
-        <div className="flex flex-wrap items-center justify-between gap-1 px-2 pt-2 text-[11px] text-muted">
-          <span>Google Maps</span>
-          <a href={rec.photo_google_maps_uri || rec.maps_url || "#"} target="_blank" rel="noopener noreferrer" className="underline">Voir la photo sur Maps</a>
-          {rec.photo_author && (rec.photo_author_url ? (
-            <a href={rec.photo_author_url} target="_blank" rel="noopener noreferrer" className="underline">Photo : {rec.photo_author}</a>
-          ) : <span>Photo : {rec.photo_author}</span>)}
+        <div className="aspect-[5/4] overflow-hidden">
+          {imgError || !rec.image_url ? (
+            <div className="flex h-full w-full items-center justify-center" style={{ backgroundColor: tint }}>
+              <Icon size={44} strokeWidth={1.25} style={{ color: hue }} />
+            </div>
+          ) : (
+            <img
+              src={rec.image_url}
+              alt={rec.title}
+              loading="lazy"
+              onError={() => setImgError(true)}
+              className="h-full w-full object-cover"
+            />
+          )}
         </div>
       )}
-      <div className="flex flex-1 flex-col px-3 pb-3 pt-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className={`rounded-full px-3 py-1 text-[11px] font-semibold tracking-wider ${TAG_BG[color]}`}>{rec.category_tag}</span>
-          <span className="flex items-center gap-1 text-[11px] font-medium tracking-wider text-muted">{rec.maps_url ? <MapPin size={12} /> : <Home size={12} />}{rec.location_name}</span>
+
+      <div className="flex flex-1 flex-col p-6 pl-7">
+        <p className="inline-flex items-center gap-1.5 text-[13px] font-medium" style={{ color: hue }}>
+          <TagIcon size={14} strokeWidth={2} /> {sentenceCase(rec.category_tag)}
+        </p>
+
+        <h3 className="mt-3 font-serif text-[1.4rem] font-medium leading-tight text-ink">{rec.title}</h3>
+
+        {rec.is_place ? (
+          <div className="mt-3 space-y-1.5 text-sm text-muted">
+            {rec.rating != null && (
+              <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="inline-flex items-center gap-1 font-semibold text-ink">
+                  <Star size={14} fill={hue} stroke={hue} /> {rec.rating.toFixed(1).replace(".", ",")}
+                </span>
+                <span>{rec.user_rating_count ?? 0} avis</span>
+                {rec.distance_m != null && (
+                  <span className="inline-flex items-center gap-1"><MapPin size={13} /> à {formatDistance(rec.distance_m)}</span>
+                )}
+              </p>
+            )}
+            {hours && <p className={isOpen ? "font-medium" : ""} style={isOpen ? { color: hue } : undefined}>{hours}</p>}
+            {address && <p className="leading-snug">{address}</p>}
+          </div>
+        ) : (
+          <p className="mt-3 text-[15px] leading-relaxed text-muted">{rec.description}</p>
+        )}
+
+        <div className="mt-auto pt-6">
+          {rec.maps_url ? (
+            <a
+              href={rec.maps_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+            >
+              Ouvrir dans Google Maps <ExternalLink size={15} />
+            </a>
+          ) : (
+            <button
+              onClick={() => onStart(rec)}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+            >
+              <Play size={15} /> Voir les étapes
+            </button>
+          )}
+          {!rec.is_place && (
+            <button
+              onClick={() => onDone(rec)}
+              className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-full py-2 text-[13px] text-muted transition-colors hover:text-ink"
+            >
+              <Check size={14} /> Marquer comme faite
+            </button>
+          )}
         </div>
 
-        <h3 className="mt-4 text-xl font-semibold leading-snug">{rec.title}</h3>
-        {rec.rating != null && <p className="mt-1 text-sm font-medium text-charcoal">★ {rec.rating.toFixed(1)} <span className="font-normal text-muted">({rec.user_rating_count ?? 0} avis Google)</span></p>}
-        <p className="mt-2 flex-1 text-[15px] leading-relaxed text-muted">{rec.description}</p>
-
-        {rec.maps_url ? (
-          <a
-            href={rec.maps_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-6 flex items-center justify-center gap-2 rounded-full bg-canvas px-5 py-3 text-sm font-medium transition hover:bg-white"
-          >
-            Ouvrir dans Google Maps <ExternalLink size={15} />
-          </a>
-        ) : (
-          <button
-            onClick={() => onStart(rec)}
-            className="mt-6 flex items-center justify-center gap-2 rounded-full bg-canvas px-5 py-3 text-sm font-medium transition hover:bg-white"
-          >
-            <Play size={15} /> Lancer la consigne
-          </button>
+        {rec.is_place && (
+          <p className="mt-4 text-[11px] text-muted">
+            Lieu et photo : <a href={rec.photo_google_maps_uri || rec.maps_url || "#"} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Google Maps</a>
+            {rec.photo_author && (
+              <>, photo de {rec.photo_author_url
+                ? <a href={rec.photo_author_url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{rec.photo_author}</a>
+                : rec.photo_author}</>
+            )}
+          </p>
         )}
-        {!rec.is_place && <button onClick={() => onDone(rec)} className="mt-2 rounded-full px-5 py-2 text-xs text-muted hover:bg-accent-sauge">
-          Marquer comme faite
-        </button>}
       </div>
     </motion.article>
   );

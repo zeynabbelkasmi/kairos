@@ -4,13 +4,26 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: "#FDFBF7",
-        card: "#F4F1EA",
-        charcoal: "#4A4641",
-        muted: "#7A756E",
-        accent: { lilas: "#E0D8EA", sauge: "#D2E0D9", peche: "#F6E3D4" },
+        // Base : calcaire chaud et encre vert pin, peu stimulant pour l'œil.
+        paper: "#E6DECE",
+        surface: "#F1EBDD",
+        ink: "#283028",
+        muted: "#575C4F",
+        line: "#D5CAB4",
+        // Une teinte par catégorie d'activité.
+        moss: "#5F7D5A", // sortie
+        amber: "#A86A28", // création
+        iris: "#6E6388", // découverte
+        // Alias conservés pour les anciennes classes.
+        canvas: "#E6DECE",
+        card: "#F1EBDD",
+        charcoal: "#283028",
+        accent: { sauge: "#DCE5D6", peche: "#EFE0C9", lilas: "#E3DCEC" },
       },
-      fontFamily: { sans: ['"Plus Jakarta Sans"', "Inter", "system-ui", "sans-serif"] },
+      fontFamily: {
+        serif: ['"Fraunces"', "Georgia", "serif"],
+        sans: ['"Inter"', "system-ui", "sans-serif"],
+      },
       borderRadius: { "4xl": "2rem" },
     },
   },

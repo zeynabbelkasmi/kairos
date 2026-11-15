@@ -1,166 +1,182 @@
 # Kairos
 
-**Application anti-doomscrolling.** Décris ton humeur ou ton envie, Kairos te répond avec
-**trois alternatives concrètes** pour décrocher des écrans : des activités à faire et, si tu
-le veux, de vrais lieux près de toi.
+*καιρός: the opportune moment.*
 
-- Trois options, jamais plus : on choisit vite et on referme l'onglet.
-- Les activités sont générées à la demande par un LLM, pas tirées d'un catalogue figé.
-- Les lieux proposés sont réels, notés et illustrés d'une photo, dans le rayon que tu choisis.
-- Les activités terminées sont enregistrées et évitées dans les suggestions suivantes.
+**Kairos helps you put your phone down.** Tell it how you feel or what you're in the mood for,
+and Kairos suggests **three concrete things to do away from the screen**: simple activities
+you can start right away, and real places near you.
 
----
+<p align="center">
+  <img src="docs/images/resultats.png" alt="Three Kairos suggestions: a sensory walk, a visual journal and a logic puzzle" width="900">
+</p>
 
-## Stack
+> The app's interface is in French.
 
-| Côté | Technologies |
-|------|--------------|
-| Backend | FastAPI, SQLModel (SQLite), httpx |
-| Frontend | React, Vite, TypeScript, Tailwind CSS, Framer Motion |
-| IA | Ollama Cloud, Google Gemini ou un LLM local (API compatible OpenAI) |
-| Lieux | Google Places API (New) ou la recherche web de Google Maps |
+## Why three ideas, and no more
 
----
+Doomscrolling runs on an endless feed. Kairos does the opposite: **three options, not one
+more**, so you can choose quickly, put the phone down and go.
 
-## Prérequis
+## What Kairos does
 
-- **Python 3.11+** et **Node.js 18+**
-- Au moins une source d'IA (voir [Configurer l'IA](#configurer-lia)) — sans elle, Kairos
-  propose quand même trois idées de secours.
+- **Understands your request**: your mood, what you feel like doing ("a quiet café to read"),
+  and whether you're alone or with someone.
+- **Generates tailored activities** with an LLM, each with steps to follow, instead of picking
+  from a fixed catalog.
+- **Finds real places around you** (cafés, parks, museums, libraries, galleries) within the
+  radius you choose, from 500 m to 10 km. Each place comes with a photo, its rating, distance,
+  opening hours and a Google Maps link.
+- **Keeps only good places**: open, rated at least 4.2/5, with at least 10 reviews.
+- **Remembers what you've done**: an activity marked as done is not suggested again.
+- **Works without AI or location**: without an LLM it puts together fallback ideas; without
+  geolocation it suggests activities with no place attached.
 
----
+<p align="center">
+  <img src="docs/images/formulaire.png" alt="Kairos form: free text, current energy, who you're with, and maximum distance" width="620">
+  &nbsp;
+  <img src="docs/images/mobile.png" alt="Kairos on mobile" width="190">
+</p>
 
-## Lancer le projet
+## Quick start
 
-### 1. Backend (port 8000)
+**Requirements:** Python 3.10+ and Node.js 18+.
 
 ```powershell
+# 1. Backend (http://localhost:8000)
 cd backend
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
+copy .env.example .env          # then add at least one AI key (see below)
 uvicorn app.main:app --reload --port 8000
-```
 
-La base SQLite (`kairos.db`, historique des activités) est créée automatiquement au premier
-démarrage. Pour repartir de zéro, supprime le fichier.
-
-### 2. Frontend (port 5173)
-
-```powershell
+# 2. Frontend (http://localhost:5173), in a second terminal
 cd frontend
 npm install
 npm run dev
 ```
 
-Ouvre ensuite http://localhost:5173. Le frontend appelle le backend sur le port 8000.
+Open http://localhost:5173 and **allow location access** to see nearby places.
+To check the backend, http://localhost:8000/api/health shows the active AI provider.
 
----
+> The SQLite database (`backend/kairos.db`) is created on first launch. Delete it to clear
+> the history.
 
 ## Configuration
 
-Copie `backend/.env.example` en `backend/.env`, puis renseigne les valeurs utiles.
-`GET http://localhost:8000/api/health` indique le fournisseur d'IA actif.
+All configuration lives in `backend/.env` (never committed).
 
-### Configurer l'IA
+### AI
 
-Le fournisseur est choisi automatiquement selon la clé présente (ordre : Ollama Cloud →
-Gemini → local), ou forcé avec `LLM_PROVIDER`.
+Kairos uses the first provider whose key is set: **Ollama Cloud**, then **Gemini**, then a
+**local LLM**. You can also force one with `LLM_PROVIDER`.
 
-**Ollama Cloud** (par défaut si `OLLAMA_API_KEY` est défini)
-```ini
-OLLAMA_API_KEY=ta_cle        # https://ollama.com/settings/keys
-LLM_MODEL=gpt-oss:120b
+| Provider | What to put in `.env` |
+|----------|-----------------------|
+| Ollama Cloud | `OLLAMA_API_KEY=...` ([get a key](https://ollama.com/settings/keys)), `LLM_MODEL=gpt-oss:120b` |
+| Google Gemini | `GEMINI_API_KEY=...` ([get a key](https://aistudio.google.com/apikey)), without `OLLAMA_API_KEY` |
+| Local (Ollama, LM Studio) | `LLM_PROVIDER=local`, `LLM_BASE_URL=http://localhost:11434/v1` (LM Studio: port `1234`), `LLM_MODEL=qwen3:8b` |
+
+### Places
+
+| Source | Key | Cost | Recommended use |
+|--------|-----|------|-----------------|
+| **Google Places API** | `GOOGLE_PLACES_API_KEY` | Paid beyond the free quota | Production |
+| **Google Maps search** | None | Free | Prototype, demo |
+
+`PLACES_PROVIDER` picks the source: `auto` (default: the official API if a key is set,
+otherwise Google Maps), `google_places` or `maps`. Quality thresholds are set with
+`GOOGLE_PLACES_MIN_RATING` (default `4.2`) and `GOOGLE_PLACES_MIN_REVIEWS` (default `10`).
+
+**Enabling the Google Places API:** in Google Cloud, enable **Places API (New)** and billing,
+create a key restricted to that API, then add it to `.env`.
+
+> ⚠️ **The keyless Google Maps search is not an official API.** Kairos replays the request
+> that the Google Maps web page sends itself (found with
+> [API Anything](https://github.com/goodnight000/api-anything)). Google can change or block it
+> at any time, and using it in production violates its terms of service. For a deployment,
+> use the official API.
+
+## How it works
+
+```
+Browser (React)  ──  mood, text, location, radius  ──▶  POST /api/kairos/recommend
+                                                              │
+                   ┌──────────────────────────────────────────┼──────────────────────┐
+                   ▼                                          ▼                      ▼
+          LLM: activity ideas                     Places within the radius    SQLite: activities
+          (Ollama / Gemini / local)               (Places API or Maps)        already done, skipped
+                   └──────────────────────────────────────────┬──────────────────────┘
+                                                              ▼
+                               3 suggestions: real places when available, filled in with ideas
 ```
 
-**Google Gemini**
-```ini
-GEMINI_API_KEY=ta_cle        # https://aistudio.google.com/apikey
-# et retire OLLAMA_API_KEY
-```
+## Stack
 
-**LLM local** (LM Studio ou Ollama sur ta machine)
-```ini
-LLM_PROVIDER=local
-LLM_BASE_URL=http://localhost:11434/v1   # Ollama ; LM Studio : http://localhost:1234/v1
-LLM_MODEL=qwen3:8b
-```
-
-### Configurer les lieux
-
-Deux sources sont possibles, choisies par `PLACES_PROVIDER` dans `.env` :
-
-| `PLACES_PROVIDER` | Comportement |
-|-------------------|--------------|
-| `auto` *(défaut)* | API Places officielle si une clé est présente, sinon recherche Google Maps |
-| `google_places` | API Places officielle uniquement |
-| `maps` | Recherche web de Google Maps uniquement |
-
-Dans les deux cas, Kairos ne garde que les lieux opérationnels, notés **≥ 4,2/5**, avec au
-moins **10 avis** et une **photo**, situés dans le rayon demandé. Ajuste les seuils avec
-`GOOGLE_PLACES_MIN_RATING` et `GOOGLE_PLACES_MIN_REVIEWS`.
-
-**Option A — API Google Places (recommandée en production)**
-1. Dans Google Cloud, active **Places API (New)** et configure facturation et quotas.
-2. Crée une clé restreinte à Places API (New), gardée uniquement côté backend.
-3. Ajoute `GOOGLE_PLACES_API_KEY=...` à `.env` et redémarre FastAPI.
-
-> Les appels Places et photos peuvent être facturés par Google : vérifie tarifs et quotas.
-
-**Option B — Recherche Google Maps (sans clé)**
-
-Sans clé, `backend/app/maps_search.py` rejoue la requête que la page web de Google Maps
-envoie elle-même (apprise avec [API Anything](https://github.com/goodnight000/api-anything),
-opération `google-maps searchPlaces`), centrée sur ta position. Elle renvoie nom, adresse,
-note, nombre d'avis, photo, horaires et un lien vers la fiche Maps.
-
-> ⚠️ C'est une API **non documentée** : Google peut la modifier ou bloquer les requêtes à
-> tout moment, et l'usage en production enfreint ses conditions d'utilisation. Pratique pour
-> prototyper ; pour un déploiement, préfère l'API officielle (Option A).
-
----
-
-## Comment ça marche
-
-1. Tu décris ton humeur / ton envie et choisis une **distance maximale** (500 m à 10 km).
-2. Le navigateur transmet ta position (si tu l'autorises).
-3. Le backend demande des idées d'activités au LLM **et**, en parallèle, cherche des lieux
-   proches correspondant à ta demande.
-4. Kairos combine le tout en **trois options distinctes** : des lieux réels quand ils existent,
-   complétés par des activités.
-5. Une fois une activité faite, tu peux la marquer comme terminée ; elle rejoint ton
-   historique et n'est plus reproposée.
-
-Sans position, ou si aucun lieu ne passe les filtres, Kairos renvoie trois idées d'activités.
-Sans LLM, il compose trois idées de secours variées.
-
----
+| Part | Technologies |
+|------|--------------|
+| Backend | Python, FastAPI, SQLModel (SQLite), httpx |
+| Frontend | React, TypeScript, Vite, Tailwind CSS, Framer Motion |
+| AI | Ollama Cloud, Google Gemini or a local OpenAI-compatible LLM |
+| Places | Google Places API (New) or Google Maps search |
 
 ## API
 
-| Méthode | Route | Rôle |
-|---------|-------|------|
-| `GET` | `/api/health` | État du serveur et fournisseur d'IA actif |
-| `POST` | `/api/kairos/recommend` | Renvoie trois recommandations |
-| `GET` | `/api/kairos/history` | Liste les activités terminées |
-| `POST` | `/api/kairos/history` | Enregistre une activité terminée |
+| Method | Route | Purpose |
+|--------|-------|---------|
+| `GET` | `/api/health` | Server status and active AI provider |
+| `POST` | `/api/kairos/recommend` | Returns three suggestions |
+| `GET` | `/api/kairos/history` | Lists completed activities |
+| `POST` | `/api/kairos/history` | Marks an activity as done |
 
----
+<details>
+<summary>Example <code>POST /api/kairos/recommend</code> request</summary>
 
-## Structure
+```json
+{
+  "user_input": "J'ai envie d'un café calme pour lire",
+  "mood": "Fatigué(e)",
+  "is_alone": true,
+  "max_options": 3,
+  "lat": 34.0209,
+  "lon": -6.8416,
+  "radius": 1000
+}
+```
+
+The response always contains **exactly three** `recommendations`, plus `source` (`llm` or
+`fallback`) and `places_source`, which tells where the places came from or why there are none
+(`google`, `maps`, `google_no_match`, `no_location`…).
+
+</details>
+
+## Project structure
 
 ```
-backend/
-  app/
-    main.py            # routes FastAPI
-    recommender.py     # logique : LLM + lieux + historique
-    google_places.py   # recherche via l'API Places officielle
-    maps_search.py     # recherche via la page web Google Maps (sans clé)
-    database.py        # SQLite / SQLModel
-    schemas.py         # modèles Pydantic
-frontend/
-  src/
-    App.tsx            # écran principal
-    api.ts             # appels backend + géolocalisation
-    components/        # formulaire, cartes, modale, loader
+backend/app/
+  main.py            FastAPI routes
+  recommender.py     Core logic: AI + places + history
+  google_places.py   Places from the official Places API
+  maps_search.py     Places from Google Maps search (no key)
+  database.py        SQLite
+  schemas.py         Data models
+frontend/src/
+  App.tsx            Main screen
+  api.ts             Backend calls and geolocation
+  components/        Form, cards, steps dialog, loading animation
+docs/
+  REPRISE.md         Project history and handover guide (in French)
 ```
+
+## Known limitations
+
+- The keyless Google Maps search is **fragile** and meant for prototyping only (see above).
+- It returns at most **20 places per type**: in a large city, mostly popular places show up.
+- It is set to **French and Morocco** (`hl=fr`, `gl=ma` in `maps_search.py`).
+- No automated tests yet.
+
+## Going further
+
+[`docs/REPRISE.md`](docs/REPRISE.md) (in French) explains in detail everything that has been
+done, the design choices, the full configuration, what to do if the Google Maps search
+breaks, and the planned next steps.

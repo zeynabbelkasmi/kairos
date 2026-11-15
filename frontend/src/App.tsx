@@ -59,54 +59,79 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-10 sm:px-8 sm:py-16">
-      <header className="mx-auto mb-12 max-w-2xl text-center">
+    <div className="min-h-screen px-4 py-12 sm:px-8 sm:py-20">
+      <header className="mx-auto mb-14 max-w-2xl text-center">
         <motion.h1
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}
-          className="text-4xl font-light tracking-tight sm:text-5xl"
+          initial={{ opacity: 0, letterSpacing: "0.08em" }}
+          animate={{ opacity: 1, letterSpacing: "-0.02em" }}
+          transition={{ duration: 1.6, ease: "easeOut" }}
+          className="font-serif text-6xl font-normal text-ink sm:text-7xl"
         >
           Kairos
         </motion.h1>
-        <p className="mt-3 text-muted">Le moment opportun pour décrocher. Trois idées, pas une de plus.</p>
-        <button onClick={async () => { setHistory(await fetchHistory()); setShowHistory(!showHistory); }} className="mt-4 inline-flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm text-muted hover:bg-accent-lilas">
-          <History size={15} /> {showHistory ? "Masquer l'historique" : "Mes activités faites"}
+        <p className="mt-3 font-serif text-lg italic text-muted">καιρός, le moment opportun</p>
+        <p className="mx-auto mt-6 max-w-md text-[16px] leading-relaxed text-muted">
+          Dis-nous où tu en es. Kairos te propose trois choses à faire loin de l'écran, dont de vrais lieux près de toi.
+        </p>
+        <button
+          onClick={async () => { setHistory(await fetchHistory()); setShowHistory(!showHistory); }}
+          aria-expanded={showHistory}
+          className="mt-6 inline-flex items-center gap-2 text-sm text-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+        >
+          <History size={15} /> {showHistory ? "Masquer mes activités faites" : "Mes activités faites"}
         </button>
       </header>
 
       <main className="mx-auto max-w-6xl">
-        {showHistory && <section className="mx-auto mb-8 max-w-2xl rounded-3xl bg-card p-6"><h2 className="mb-3 font-semibold">Activités terminées</h2>{history.length ? <ul className="space-y-2">{history.map((item) => <li key={item.id} className="text-sm text-muted">{item.title} <span className="opacity-70">· {new Date(item.completed_at).toLocaleDateString("fr-FR")}</span></li>)}</ul> : <p className="text-sm text-muted">Aucune activité enregistrée pour le moment.</p>}</section>}
+        {showHistory && (
+          <section className="mx-auto mb-10 max-w-2xl rounded-2xl bg-surface p-6">
+            <h2 className="font-serif text-xl text-ink">Activités faites</h2>
+            {history.length ? (
+              <ul className="mt-4 divide-y divide-line">
+                {history.map((item) => (
+                  <li key={item.id} className="flex items-baseline justify-between gap-4 py-2.5 text-sm">
+                    <span className="text-ink">{item.title}</span>
+                    <time className="shrink-0 text-muted">{new Date(item.completed_at).toLocaleDateString("fr-FR")}</time>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-3 text-sm text-muted">Rien pour l'instant. Marque une idée comme faite et elle apparaîtra ici.</p>
+            )}
+          </section>
+        )}
         <AnimatePresence mode="wait">
           {phase === "form" && <KairosForm key="form" initial={lastReq} onSubmit={run} />}
           {phase === "loading" && <BreathingLoader key="loader" />}
           {phase === "results" && (
             <motion.section key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               {notice && (
-                <p className="mx-auto mb-8 flex max-w-2xl items-center justify-center gap-2 rounded-full bg-card px-5 py-3 text-center text-sm text-muted">
-                  <MapPinOff size={15} /> {notice}
+                <p role="status" className="mx-auto mb-10 flex max-w-2xl items-start gap-3 rounded-xl border border-line px-5 py-4 text-sm leading-relaxed text-muted">
+                  <MapPinOff size={16} className="mt-0.5 shrink-0" /> {notice}
                 </p>
               )}
-              <div className={`grid gap-6 ${recs.length === 2 ? "mx-auto max-w-4xl md:grid-cols-2" : "md:grid-cols-3"}`}>
+              <div className={`grid items-start gap-5 ${recs.length === 2 ? "mx-auto max-w-4xl md:grid-cols-2" : "md:grid-cols-3"}`}>
                 {recs.map((r, i) => (
                   <KairosCard key={r.id} rec={r} index={i} onStart={setActive} onDone={markDone} />
                 ))}
               </div>
-              <div className="mt-12 flex flex-wrap justify-center gap-3">
+              <p className="mt-14 text-center font-serif text-xl italic text-ink">Choisis-en une, pose ton téléphone, et vas-y.</p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <button
                   onClick={() => setPhase("form")}
-                  className="flex items-center gap-2 rounded-full bg-card px-5 py-3 text-sm hover:bg-accent-lilas"
+                  className="flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm text-ink transition-colors hover:border-ink/40"
                 >
                   <ArrowLeft size={15} /> Modifier ma demande
                 </button>
                 {lastReq && (
                   <button
                     onClick={() => run(lastReq)}
-                    className="flex items-center gap-2 rounded-full bg-card px-5 py-3 text-sm hover:bg-accent-sauge"
+                    className="flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm text-ink transition-colors hover:border-ink/40"
                   >
-                    <RefreshCw size={15} /> Autres idées
+                    <RefreshCw size={15} /> Trois autres idées
                   </button>
                 )}
               </div>
-              <p className="mt-10 text-center text-sm text-muted">Choisis-en une, ferme l'onglet, et vas-y.</p>
             </motion.section>
           )}
         </AnimatePresence>

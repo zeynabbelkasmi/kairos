@@ -11,24 +11,24 @@ export default function BreathingLoader() {
       <div className="relative h-48 w-48">
         <motion.div
           className="absolute inset-0 rounded-full blur-2xl"
-          animate={{ scale: [0.8, 1.15, 0.8], backgroundColor: ["#D2E0D9", "#E0D8EA", "#D2E0D9"] }}
+          animate={{ scale: [0.8, 1.15, 0.8], backgroundColor: ["#C9D6C3", "#D9D1E3", "#C9D6C3"] }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
           className="absolute inset-8 rounded-full blur-md opacity-80"
-          animate={{ scale: [0.9, 1.05, 0.9], backgroundColor: ["#E0D8EA", "#D2E0D9", "#E0D8EA"] }}
+          animate={{ scale: [0.9, 1.05, 0.9], backgroundColor: ["#D9D1E3", "#C9D6C3", "#D9D1E3"] }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
       <div className="text-center">
         <motion.p
-          className="text-lg text-charcoal"
+          className="font-serif text-2xl italic text-ink"
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 5, repeat: Infinity }}
         >
           Inspire… expire…
         </motion.p>
-        <p className="mt-2 text-sm text-muted">Sélection des meilleures options pour toi…</p>
+        <p className="mt-3 text-sm text-muted">On cherche trois idées pour toi.</p>
       </div>
     </motion.div>
   );

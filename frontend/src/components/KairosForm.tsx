@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Sparkles, User, Users } from "lucide-react";
+import { User, Users } from "lucide-react";
 import type { RecommendRequest } from "../types";
 
 const MOODS = ["Fatigué(e)", "Créatif(ve)", "En quête de calme", "Plein d'énergie"];
@@ -17,13 +17,23 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm transition ${
-        active ? "bg-charcoal text-canvas" : "bg-canvas text-charcoal hover:bg-white"
+      className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors ${
+        active ? "border-ink bg-ink text-paper" : "border-line bg-transparent text-ink hover:border-ink/40"
       }`}
     >
       {children}
     </button>
+  );
+}
+
+function Group({ legend, children }: { legend: string; children: ReactNode }) {
+  return (
+    <fieldset className="mt-7">
+      <legend className="text-sm font-medium text-ink">{legend}</legend>
+      <div className="mt-3 flex flex-wrap gap-2">{children}</div>
+    </fieldset>
   );
 }
 
@@ -37,57 +47,53 @@ export default function KairosForm({ initial, onSubmit }: Props) {
 
   return (
     <motion.form
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
       onSubmit={(e) => {
         e.preventDefault();
         if (canSubmit) onSubmit({ user_input: text.trim(), mood, is_alone: alone, max_options: 3, radius });
       }}
-      className="mx-auto w-full max-w-2xl rounded-4xl bg-card p-6 sm:p-10"
+      className="mx-auto w-full max-w-2xl rounded-2xl bg-surface p-6 sm:p-10"
     >
-      <label htmlFor="prompt" className="block text-lg font-medium">
-        Comment te sens-tu ou qu'as-tu envie de faire ?
+      <label htmlFor="prompt" className="block font-serif text-2xl leading-snug text-ink">
+        Comment te sens-tu, et de quoi as-tu envie&nbsp;?
       </label>
       <textarea
         id="prompt"
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={3}
-        placeholder="Ex : Je suis saturée d'écrans et j'ai besoin de prendre l'air…"
-        className="mt-4 w-full resize-none rounded-3xl bg-canvas p-5 text-[15px] leading-relaxed placeholder:text-muted/70 focus:outline-none focus:ring-2 focus:ring-accent-lilas"
+        placeholder="Je suis saturée d'écrans, j'ai besoin de prendre l'air…"
+        className="mt-5 w-full resize-none rounded-xl border border-line bg-paper/60 p-4 text-[15px] leading-relaxed text-ink placeholder:text-muted/70 focus:border-moss focus:outline-none"
       />
 
-      <p className="mt-6 text-xs font-semibold tracking-wider text-muted">HUMEUR / ÉNERGIE</p>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <Group legend="Ton énergie du moment">
         {MOODS.map((m) => (
           <Chip key={m} active={mood === m} onClick={() => setMood(mood === m ? null : m)}>{m}</Chip>
         ))}
-      </div>
+      </Group>
 
-      <p className="mt-6 text-xs font-semibold tracking-wider text-muted">CONTEXTE SOCIAL</p>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <Group legend="Avec qui">
         <Chip active={alone} onClick={() => setAlone(true)}><User size={15} /> Seul(e)</Chip>
         <Chip active={!alone} onClick={() => setAlone(false)}><Users size={15} /> Accompagné(e)</Chip>
-      </div>
+      </Group>
 
-      <p className="mt-6 text-xs font-semibold tracking-wider text-muted">DISTANCE MAXIMALE</p>
-      <div className="mt-3 flex flex-wrap gap-2">
+      <Group legend="Jusqu'où marcher">
         {RADII.map((r) => (
-          <Chip key={r} active={radius === r} onClick={() => setRadius(r)}>
-            {r === radius && <MapPin size={15} />} {formatRadius(r)}
-          </Chip>
+          <Chip key={r} active={radius === r} onClick={() => setRadius(r)}>{formatRadius(r)}</Chip>
         ))}
-      </div>
+      </Group>
 
       <button
         type="submit"
         disabled={!canSubmit}
-        className="mt-10 flex w-full items-center justify-center gap-2 rounded-full bg-charcoal px-6 py-4 text-[15px] font-medium text-canvas transition hover:bg-charcoal/90 disabled:cursor-not-allowed disabled:opacity-40"
+        className="mt-10 w-full rounded-full bg-ink px-6 py-4 text-[15px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
       >
-        <Sparkles size={17} /> Trouver un moment Kairos
+        Me proposer trois idées
       </button>
+      {!canSubmit && <p className="mt-3 text-center text-[13px] text-muted">Écris quelques mots ou choisis une énergie pour commencer.</p>}
     </motion.form>
   );
 }
