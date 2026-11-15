@@ -23,16 +23,15 @@ more**, so you can choose quickly, put the phone down and go.
   and whether you're alone or with someone.
 - **Generates tailored activities** with an LLM, each with steps to follow, instead of picking
   from a fixed catalog.
-- **Finds real places around you** (cafés, parks, museums, libraries, galleries) within the
-  radius you choose, from 500 m to 10 km. Each place comes with a photo, its rating, distance,
-  opening hours and a Google Maps link.
-- **Keeps only good places**: open, rated at least 4.2/5, with at least 10 reviews.
+- **Finds real places around you** (cafés, parks, museums, libraries, galleries) within 5 km.
+  Each place comes with a photo, its rating, distance, opening hours and a Google Maps link.
+- **Keeps only good places**: open right now, rated at least 4.2/5, with at least 10 reviews.
 - **Remembers what you've done**: an activity marked as done is not suggested again.
 - **Works without AI or location**: without an LLM it puts together fallback ideas; without
   geolocation it suggests activities with no place attached.
 
 <p align="center">
-  <img src="docs/images/formulaire.png" alt="Kairos form: free text, current energy, who you're with, and maximum distance" width="620">
+  <img src="docs/images/formulaire.png" alt="Kairos form: free text, current energy and who you're with" width="620">
   &nbsp;
   <img src="docs/images/mobile.png" alt="Kairos on mobile" width="190">
 </p>
@@ -100,11 +99,11 @@ create a key restricted to that API, then add it to `.env`.
 ## How it works
 
 ```
-Browser (React)  ──  mood, text, location, radius  ──▶  POST /api/kairos/recommend
+Browser (React)  ──  mood, text, location  ────────▶  POST /api/kairos/recommend
                                                               │
                    ┌──────────────────────────────────────────┼──────────────────────┐
                    ▼                                          ▼                      ▼
-          LLM: activity ideas                     Places within the radius    SQLite: activities
+          LLM: activity ideas                     Open places within 5 km     SQLite: activities
           (Ollama / Gemini / local)               (Places API or Maps)        already done, skipped
                    └──────────────────────────────────────────┬──────────────────────┘
                                                               ▼
@@ -139,14 +138,14 @@ Browser (React)  ──  mood, text, location, radius  ──▶  POST /api/kair
   "is_alone": true,
   "max_options": 3,
   "lat": 34.0209,
-  "lon": -6.8416,
-  "radius": 1000
+  "lon": -6.8416
 }
 ```
 
 The response always contains **exactly three** `recommendations`, plus `source` (`llm` or
 `fallback`) and `places_source`, which tells where the places came from or why there are none
-(`google`, `maps`, `google_no_match`, `no_location`…).
+(`google`, `maps`, `google_no_match`, `no_location`…). An optional `radius` (300 to 10,000 m,
+default 5,000) changes the search distance.
 
 </details>
 

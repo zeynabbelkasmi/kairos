@@ -2,7 +2,8 @@
 
 The request is the one the Maps web page itself sends (learned with API Anything,
 site "google-maps", operation "searchPlaces"). Kairos adds a viewport centred on the
-user so results are local, then keeps only places inside the requested radius.
+user so results are local, then keeps only places inside the radius (5 km by default)
+that are open right now.
 This is an unofficial endpoint: Google can change it at any time, and it is meant for
 prototyping. Nothing is persisted.
 """
@@ -103,9 +104,12 @@ async def search_maps(lat: float, lon: float, radius: int, wanted: set[str]) -> 
             rating, reviews = _get(place, 4, 7), _get(place, 4, 8) or 0
             hours = _get(place, 203, 1, 4, 0) or ""
             image_url = _photo(place)
+            # "Fermé ⋅ Ouvre à 08:00", "Fermé définitivement"…: skip anything not open now.
+            closed = hours.lower().startswith("fermé") or any(
+                word in hours.lower() for word in ("définitivement", "temporairement"))
             if (not name or not place_id or place_id in seen or plat is None or plon is None
                     or rating is None or float(rating) < min_rating or int(reviews) < min_reviews
-                    or not image_url or "définitivement" in hours.lower() or "temporairement" in hours.lower()):
+                    or not image_url or closed):
                 continue
             distance = haversine_m(lat, lon, float(plat), float(plon))
             if distance > radius:  # the viewport is a square; keep only the circle

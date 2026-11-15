@@ -4,12 +4,6 @@ import { User, Users } from "lucide-react";
 import type { RecommendRequest } from "../types";
 
 const MOODS = ["Fatigué(e)", "Créatif(ve)", "En quête de calme", "Plein d'énergie"];
-// Distance maximale des lieux proposés, en mètres (le backend accepte 300 à 10 000).
-const RADII = [500, 1000, 2000, 5000, 10000];
-
-export function formatRadius(m: number) {
-  return m < 1000 ? `${m} m` : `${m / 1000} km`;
-}
 
 interface Props { initial?: RecommendRequest | null; onSubmit: (req: RecommendRequest) => void }
 
@@ -41,7 +35,6 @@ export default function KairosForm({ initial, onSubmit }: Props) {
   const [text, setText] = useState(initial?.user_input ?? "");
   const [mood, setMood] = useState<string | null>(initial?.mood ?? null);
   const [alone, setAlone] = useState(initial?.is_alone ?? true);
-  const [radius, setRadius] = useState(initial?.radius ?? 2000);
 
   const canSubmit = text.trim().length > 0 || mood !== null;
 
@@ -53,7 +46,7 @@ export default function KairosForm({ initial, onSubmit }: Props) {
       transition={{ duration: 0.4 }}
       onSubmit={(e) => {
         e.preventDefault();
-        if (canSubmit) onSubmit({ user_input: text.trim(), mood, is_alone: alone, max_options: 3, radius });
+        if (canSubmit) onSubmit({ user_input: text.trim(), mood, is_alone: alone, max_options: 3 });
       }}
       className="mx-auto w-full max-w-2xl rounded-2xl bg-surface p-6 sm:p-10"
     >
@@ -78,12 +71,6 @@ export default function KairosForm({ initial, onSubmit }: Props) {
       <Group legend="Avec qui">
         <Chip active={alone} onClick={() => setAlone(true)}><User size={15} /> Seul(e)</Chip>
         <Chip active={!alone} onClick={() => setAlone(false)}><Users size={15} /> Accompagné(e)</Chip>
-      </Group>
-
-      <Group legend="Jusqu'où marcher">
-        {RADII.map((r) => (
-          <Chip key={r} active={radius === r} onClick={() => setRadius(r)}>{formatRadius(r)}</Chip>
-        ))}
       </Group>
 
       <button

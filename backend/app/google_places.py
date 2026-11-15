@@ -19,6 +19,7 @@ FIELDS = ",".join([
     "places.id", "places.displayName", "places.formattedAddress", "places.location",
     "places.types", "places.primaryTypeDisplayName", "places.googleMapsUri",
     "places.businessStatus", "places.rating", "places.userRatingCount",
+    "places.currentOpeningHours.openNow",
     "places.photos.name", "places.photos.authorAttributions", "places.photos.googleMapsUri",
 ])
 
@@ -87,7 +88,8 @@ async def search_places(lat: float, lon: float, radius: int, wanted: set[str]) -
             category = next((TYPE_CATEGORY[t] for t in place_types if t in TYPE_CATEGORY), None)
             rating = place.get("rating")
             review_count = place.get("userRatingCount", 0)
-            if (place.get("businessStatus") != "OPERATIONAL" or not name or not address or not place_id
+            open_now = (place.get("currentOpeningHours") or {}).get("openNow")
+            if (place.get("businessStatus") != "OPERATIONAL" or open_now is False or not name or not address or not place_id
                     or not category or not place.get("googleMapsUri") or not location
                     or rating is None or float(rating) < min_rating or int(review_count) < min_reviews):
                 continue

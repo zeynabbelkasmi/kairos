@@ -20,7 +20,7 @@ export async function fetchRecommendations(req: RecommendRequest): Promise<Recom
     const res = await fetch("/api/kairos/recommend", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...req, lat: pos.lat, lon: pos.lon, radius: req.radius ?? 2000 }),
+      body: JSON.stringify({ ...req, lat: pos.lat, lon: pos.lon }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = (await res.json()) as RecommendResponse;

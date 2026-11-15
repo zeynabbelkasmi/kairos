@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, RefreshCw, MapPinOff, History } from "lucide-react";
-import KairosForm, { formatRadius } from "./components/KairosForm";
+import KairosForm from "./components/KairosForm";
 import BreathingLoader from "./components/BreathingLoader";
 import KairosCard from "./components/KairosCard";
 import InstructionModal from "./components/InstructionModal";
@@ -48,7 +48,7 @@ export default function App() {
         : data.places_source === "no_location"
           ? "La géolocalisation est indisponible. Voici trois activités sans lieu inventé; autorise ta position pour chercher des spots proches."
           : data.places_source === "google_no_match"
-            ? `Aucun spot à moins de ${formatRadius(req.radius ?? 2000)} ne correspond au type demandé avec une note suffisante et une photo. Élargis la distance ou essaie une de ces trois idées.`
+            ? "Aucun lieu ouvert près de toi ne correspond au type demandé avec une note suffisante et une photo. Essaie une de ces trois idées."
             : data.places_source === "google_error"
               ? "Google Places n'a pas répondu. Voici trois idées à faire; vérifie la clé et l'activation de Places API."
               : data.places_source === "maps_error"
@@ -70,9 +70,6 @@ export default function App() {
           Kairos
         </motion.h1>
         <p className="mt-3 font-serif text-lg italic text-muted">καιρός, le moment opportun</p>
-        <p className="mx-auto mt-6 max-w-md text-[16px] leading-relaxed text-muted">
-          Dis-nous où tu en es. Kairos te propose trois choses à faire loin de l'écran, dont de vrais lieux près de toi.
-        </p>
         <button
           onClick={async () => { setHistory(await fetchHistory()); setShowHistory(!showHistory); }}
           aria-expanded={showHistory}

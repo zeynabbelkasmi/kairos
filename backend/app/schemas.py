@@ -10,7 +10,7 @@ class RecommendRequest(BaseModel):
     max_options: int = Field(3, ge=3, le=3)
     lat: Optional[float] = None  # position de l'utilisateur (gÃ©olocalisation navigateur)
     lon: Optional[float] = None
-    radius: int = Field(2000, ge=300, le=10000)  # mÃ¨tres
+    radius: int = Field(5000, ge=300, le=10000)  # mÃ¨tres
 
 
 class Recommendation(BaseModel):

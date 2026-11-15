@@ -17,7 +17,7 @@ proximité.
 | Backend FastAPI + SQLite | Fonctionnel |
 | Génération d'activités par LLM (Ollama Cloud, Gemini ou local) | Fonctionnel, avec des idées de secours sans LLM |
 | Recherche de lieux **sans clé** via Google Maps | Fonctionnelle, commitée et poussée (`df4e94f`) |
-| Choix du rayon (500 m à 10 km) | Fonctionnel, commité et poussé (`df4e94f`) |
+| Choix du rayon (500 m à 10 km) | Retiré de l'interface (voir 4.6) ; rayon fixe de 5 km |
 | README réécrit (encodage corrigé) | Commité et poussé (`df4e94f`) |
 | **Refonte de l'interface** | Terminée et vérifiée, **pas encore commitée** |
 | API Anything (outil de rétro-ingénierie d'API) | Installé sur la machine et connecté à Claude Code |
@@ -150,8 +150,9 @@ de Google, trois ajouts ont été faits :
 | Photo | `[37][0][0][6][0]` (ou `[72][0][0][6][0]`) |
 | Horaires (« Ouvert · Ferme à 22:00 ») | `[203][1][4][0]` |
 
-**Filtres appliqués :** note ≥ 4,2, au moins 10 avis, une photo, pas « fermé
-définitivement / temporairement », et distance ≤ rayon choisi.
+**Filtres appliqués :** note ≥ 4,2, au moins 10 avis, une photo, ouvert en ce moment (pas
+« Fermé… », ni fermé définitivement / temporairement), et distance ≤ rayon (5 km par défaut).
+Un lieu sans horaires connus est gardé.
 
 **Choix de la source** (`PLACES_PROVIDER` dans `backend/.env`) :
 
@@ -228,6 +229,18 @@ Pour une app anti-doomscroll, l'objectif était l'inverse d'un feed : calme, pos
 
 **Vérifié :** `tsc` sans erreur, build Vite OK, captures desktop et mobile avec une vraie
 recherche à Rabat (cafés, et mélange lieu + idées).
+
+### 4.6 Suppression du choix de distance, lieux fermés exclus (pas encore commité)
+
+- Retrait de la phrase d'introduction sous le titre et du choix « Jusqu'où marcher » : il
+  limitait trop les lieux proposés.
+- Le frontend n'envoie plus de `radius` ; le backend utilise **5 km par défaut**
+  (`schemas.py`). Le paramètre reste accepté par l'API (300 à 10 000 m).
+- **Lieux fermés exclus :** côté Maps, tout horaire qui commence par « Fermé » est écarté
+  (`maps_search.py`) ; côté API officielle, le champ `currentOpeningHours.openNow` est
+  demandé et un lieu avec `openNow = false` est écarté (`google_places.py`).
+
+**Vérifié à Rabat :** 8 lieux, tous ouverts (ou sans horaires connus), de 620 m à 2,3 km.
 
 ---
 
