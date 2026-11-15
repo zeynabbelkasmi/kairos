@@ -30,8 +30,9 @@ def health():
 
 @app.post("/api/kairos/recommend", response_model=RecommendResponse)
 async def kairos_recommend(req: RecommendRequest):
-    recs, source, places_source = await recommend(req)
-    return RecommendResponse(recommendations=recs, source=source, places_source=places_source)
+    recs, source, places_source, film_source = await recommend(req)
+    return RecommendResponse(recommendations=recs, source=source, places_source=places_source,
+                             film_source=film_source)
 
 
 @app.get("/api/kairos/history")
@@ -41,7 +42,7 @@ def kairos_history():
 
 @app.post("/api/kairos/history")
 def complete_activity(req: CompleteRequest):
-    if not req.activity_id.startswith("idea_"):
+    if not req.activity_id.startswith(("idea_", "film_")):
         raise HTTPException(status_code=400, detail="Seules les activités générées peuvent être enregistrées dans l'historique.")
     row = add_completed(req.activity_id, req.title, req.category_tag)
     return row.model_dump(mode="json")

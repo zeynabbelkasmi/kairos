@@ -13,6 +13,7 @@ from uuid import uuid4
 import httpx
 
 from .database import list_completed
+from .imdb_search import search_film, wants_film
 from .schemas import Recommendation, RecommendRequest
 
 log = logging.getLogger("kairos")
@@ -179,6 +180,11 @@ class Cand:
     photo_author_url: str = ""
     photo_google_maps_uri: str = ""
     opening_hours: str = ""
+    is_film: bool = False
+    imdb_url: str | None = None
+    year: int | None = None
+    runtime_min: int | None = None
+    genres: list[str] = field(default_factory=list)
 
 
 def _idea_fallback(req: RecommendRequest) -> list[Cand]:
@@ -301,10 +307,22 @@ def to_rec(candidate: Cand) -> Recommendation:
         photo_author=candidate.photo_author, photo_author_url=candidate.photo_author_url,
         photo_google_maps_uri=candidate.photo_google_maps_uri,
         opening_hours=candidate.opening_hours,
+        is_film=candidate.is_film, imdb_url=candidate.imdb_url, year=candidate.year,
+        runtime_min=candidate.runtime_min, genres=candidate.genres,
     )
 
 
-async def recommend(req: RecommendRequest) -> tuple[list[Recommendation], str, str]:
+def _film_candidate(film: dict) -> Cand:
+    return Cand(
+        id=film["id"], category="intellectual", category_tag="Film", title=film["title"],
+        location="À la maison ou au cinéma", description=film["plot"] or "Un film bien noté sur IMDb.",
+        image_url=film["image_url"], rating=film["rating"], user_rating_count=film["votes"],
+        is_film=True, imdb_url=film["imdb_url"], year=film["year"],
+        runtime_min=film["runtime_min"], genres=film["genres"],
+    )
+
+
+async def recommend(req: RecommendRequest) -> tuple[list[Recommendation], str, str, str]:
     lat, lon = req.lat, req.lon
     wanted, _ = intent(req.user_input)
     places: list[dict] = []
@@ -327,6 +345,19 @@ async def recommend(req: RecommendRequest) -> tuple[list[Recommendation], str, s
         except Exception as e:
             log.warning("Places search unavailable (%s): %s", "google_places" if use_official else "maps", e)
             places_source = "google_error" if use_official else "maps_error"
+
+    # A film card only when the request talks about films ("un film drôle ce soir").
+    film: Cand | None = None
+    film_source = "none"
+    if wants_film(req.user_input):
+        try:
+            seen = {norm(row.title) for row in list_completed()[:200]}
+            found = await search_film(req.user_input, req.mood, seen)
+            film = _film_candidate(found) if found else None
+            film_source = "imdb" if film else "imdb_no_match"
+        except Exception as e:
+            log.warning("IMDb search unavailable: %s", e)
+            film_source = "imdb_error"
 
     try:
         ideas = await generate_activities(req)
@@ -353,4 +384,10 @@ async def recommend(req: RecommendRequest) -> tuple[list[Recommendation], str, s
                 seen_ids.add(idea.id)
             if len(selected) == 3:
                 break
-    return [to_rec(item) for item in selected[:3]], source, places_source
+    selected = selected[:3]
+    if film:
+        # The film takes the place of the home "à découvrir" idea, else of the last card.
+        drop = next((i for i, c in enumerate(selected) if c.category == "intellectual" and not c.is_place),
+                    len(selected) - 1)
+        selected = [film] + [c for i, c in enumerate(selected) if i != drop]
+    return [to_rec(item) for item in selected[:3]], source, places_source, film_source

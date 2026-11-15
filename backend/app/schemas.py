@@ -33,12 +33,19 @@ class Recommendation(BaseModel):
     photo_author_url: str = ""
     photo_google_maps_uri: str = ""
     opening_hours: str = ""
+    # Film suggestion (IMDb): rating is out of 10, user_rating_count is the number of votes.
+    is_film: bool = False
+    imdb_url: Optional[str] = None
+    year: Optional[int] = None
+    runtime_min: Optional[int] = None
+    genres: list[str] = []
 
 
 class RecommendResponse(BaseModel):
     recommendations: list[Recommendation] = Field(min_length=3, max_length=3)
     source: str = "llm"  # "llm" ou "fallback"
     places_source: str = "google"  # google | maps | google_no_match | google_not_configured | google_error | maps_error | no_location
+    film_source: str = "none"  # none (film not asked) | imdb | imdb_no_match | imdb_error
 
 class CompleteRequest(BaseModel):
     activity_id: str

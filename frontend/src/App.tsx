@@ -42,7 +42,13 @@ export default function App() {
       return;
     }
     setRecs(data.recommendations);
-    setNotice(
+    const filmNotice =
+      data.film_source === "imdb_no_match"
+        ? "Aucun film bien noté ne correspond à ta demande sur IMDb. Essaie un autre genre."
+        : data.film_source === "imdb_error"
+          ? "IMDb n'a pas répondu, pas de film cette fois. Réessaie dans un instant."
+          : null;
+    setNotice(filmNotice ?? (
       data.places_source === "google_not_configured"
         ? "Les trois idées sont prêtes, mais aucun spot n'est affiché comme vérifié. Ajoute une clé Google Places API pour obtenir des lieux notés et leurs photos."
         : data.places_source === "no_location"
@@ -54,7 +60,7 @@ export default function App() {
               : data.places_source === "maps_error"
                 ? "Google Maps n'a pas répondu. Voici trois idées à faire; réessaie dans un instant."
                 : null
-    );
+    ));
     setPhase("results");
   }
 

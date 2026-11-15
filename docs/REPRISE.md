@@ -247,6 +247,32 @@ recherche à Rabat (cafés, et mélange lieu + idées).
   été retiré du frontend, de `schemas.py` et du prompt (`recommender.py`). Un ancien client qui
   l'envoie encore n'est pas bloqué : FastAPI ignore les champs en trop.
 
+### 4.7 Proposition de film avec la note IMDb (pas encore commité)
+
+- **Quand :** seulement si la demande parle de film (`film`, `films`, `ciné`, `cinéma`,
+  `movie`). Une des trois cartes devient alors un film ; sinon rien ne change.
+- **Source :** `backend/app/imdb_search.py` appelle sans clé l'API GraphQL qu'utilise le site
+  imdb.com (`https://caching.graphql.imdb.com/`, requête `advancedTitleSearch`). Le catalogue
+  API Anything avait une recherche IMDb, mais sans la note : d'où l'appel GraphQL direct.
+  L'en-tête `x-imdb-user-language: fr-FR` donne les titres et résumés en français.
+  ⚠️ Attention : ajouter `accept-language` fait répondre IMDb en 403.
+- **Choix du film :** genre demandé dans le texte (« drôle » → comédie, « horreur », « SF »…),
+  sinon selon l'humeur (fatigué → comédie / animation / famille, énergie → action /
+  aventure…). Films notés au moins 7,0 avec au moins 25 000 votes (`IMDB_MIN_RATING`,
+  `IMDB_MIN_VOTES`), parmi les 50 plus populaires, tirés au hasard.
+- **Carte :** affiche entière sur fond lilas, note sur 10, nombre de votes, année, durée,
+  genres (traduits), résumé, bouton « Voir sur IMDb », « Marquer comme vu » (un film vu n'est
+  plus proposé : `main.py` accepte maintenant les identifiants `film_…` dans l'historique).
+- **Placement :** le film remplace l'idée « à découvrir » à la maison, sinon la dernière carte.
+- **API :** nouveaux champs `is_film`, `imdb_url`, `year`, `runtime_min`, `genres` dans chaque
+  recommandation, et `film_source` dans la réponse.
+- Au passage, le plus code (« 25H7+3QG ») en tête des adresses Google n'est plus affiché.
+
+**Vérifié :** « J'ai envie de regarder un film drôle ce soir » → un film (ex. « Bons Baisers
+de Bruges », 7,9/10, 501 k votes) + un café + une idée ; une demande sans « film » → aucun film.
+⚠️ Comme Google Maps, cette API n'est pas officielle : IMDb n'autorise qu'un usage limité et
+non commercial.
+
 ---
 
 ## 5. Configuration (`backend/.env`)

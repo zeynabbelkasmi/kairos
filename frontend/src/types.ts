@@ -21,6 +21,12 @@ export interface Recommendation {
   photo_author_url?: string;
   photo_google_maps_uri?: string;
   opening_hours?: string;
+  // Film (IMDb): rating is out of 10, user_rating_count is the number of votes.
+  is_film?: boolean;
+  imdb_url?: string | null;
+  year?: number | null;
+  runtime_min?: number | null;
+  genres?: string[];
 }
 
 export interface RecommendRequest {
@@ -36,5 +42,6 @@ export interface RecommendResponse {
   recommendations: Recommendation[];
   source?: "llm" | "fallback" | "mock";
   places_source?: "google" | "maps" | "google_no_match" | "google_not_configured" | "google_error" | "maps_error" | "no_location";
+  film_source?: "none" | "imdb" | "imdb_no_match" | "imdb_error";
   position?: "gps" | "unavailable";
 }

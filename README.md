@@ -26,6 +26,9 @@ more**, so you can choose quickly, put the phone down and go.
 - **Finds real places around you** (cafés, parks, museums, libraries, galleries) within 5 km.
   Each place comes with a photo, its rating, distance, opening hours and a Google Maps link.
 - **Keeps only good places**: open right now, rated at least 4.2/5, with at least 10 reviews.
+- **Suggests a film when you ask for one**: if your request mentions a film ("a funny film
+  tonight"), one card becomes a popular, well-rated film from IMDb that fits the genre you named
+  or your mood, with its poster, IMDb rating, number of votes, runtime and a French summary.
 - **Remembers what you've done**: an activity marked as done is not suggested again.
 - **Works without AI or location**: without an LLM it puts together fallback ideas; without
   geolocation it suggests activities with no place attached.
@@ -96,6 +99,15 @@ create a key restricted to that API, then add it to `.env`.
 > at any time, and using it in production violates its terms of service. For a deployment,
 > use the official API.
 
+### Films
+
+Film suggestions use the GraphQL endpoint that imdb.com itself calls, with no key. Only films
+rated at least `IMDB_MIN_RATING` (default `7.0`) with at least `IMDB_MIN_VOTES` votes (default
+`25000`) are suggested.
+
+> ⚠️ **This is not an official API either.** IMDb only allows limited, non-commercial use of
+> its data. Fine for a personal prototype, not for a public deployment.
+
 ## How it works
 
 ```
@@ -118,6 +130,7 @@ Browser (React)  ──  mood, text, location  ────────▶  POST
 | Frontend | React, TypeScript, Vite, Tailwind CSS, Framer Motion |
 | AI | Ollama Cloud, Google Gemini or a local OpenAI-compatible LLM |
 | Places | Google Places API (New) or Google Maps search |
+| Films | IMDb (GraphQL endpoint of imdb.com) |
 
 ## API
 
@@ -143,7 +156,8 @@ Browser (React)  ──  mood, text, location  ────────▶  POST
 
 The response always contains **exactly three** `recommendations`, plus `source` (`llm` or
 `fallback`) and `places_source`, which tells where the places came from or why there are none
-(`google`, `maps`, `google_no_match`, `no_location`…). An optional `radius` (300 to 10,000 m,
+(`google`, `maps`, `google_no_match`, `no_location`…), and `film_source` (`none` when no film
+was asked, `imdb`, `imdb_no_match` or `imdb_error`). An optional `radius` (300 to 10,000 m,
 default 5,000) changes the search distance.
 
 </details>
@@ -156,6 +170,7 @@ backend/app/
   recommender.py     Core logic: AI + places + history
   google_places.py   Places from the official Places API
   maps_search.py     Places from Google Maps search (no key)
+  imdb_search.py     Film suggestions from IMDb (no key)
   database.py        SQLite
   schemas.py         Data models
 frontend/src/
@@ -171,6 +186,7 @@ docs/
 - The keyless Google Maps search is **fragile** and meant for prototyping only (see above).
 - It returns at most **20 places per type**: in a large city, mostly popular places show up.
 - It is set to **French and Morocco** (`hl=fr`, `gl=ma` in `maps_search.py`).
+- The IMDb endpoint is unofficial too, and some French summaries from IMDb are clumsy.
 - No automated tests yet.
 
 ## Going further
