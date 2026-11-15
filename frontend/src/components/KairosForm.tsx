@@ -1,9 +1,15 @@
 import { useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, User, Users } from "lucide-react";
+import { MapPin, Sparkles, User, Users } from "lucide-react";
 import type { RecommendRequest } from "../types";
 
 const MOODS = ["Fatigué(e)", "Créatif(ve)", "En quête de calme", "Plein d'énergie"];
+// Distance maximale des lieux proposés, en mètres (le backend accepte 300 à 10 000).
+const RADII = [500, 1000, 2000, 5000, 10000];
+
+export function formatRadius(m: number) {
+  return m < 1000 ? `${m} m` : `${m / 1000} km`;
+}
 
 interface Props { initial?: RecommendRequest | null; onSubmit: (req: RecommendRequest) => void }
 
@@ -25,6 +31,7 @@ export default function KairosForm({ initial, onSubmit }: Props) {
   const [text, setText] = useState(initial?.user_input ?? "");
   const [mood, setMood] = useState<string | null>(initial?.mood ?? null);
   const [alone, setAlone] = useState(initial?.is_alone ?? true);
+  const [radius, setRadius] = useState(initial?.radius ?? 2000);
 
   const canSubmit = text.trim().length > 0 || mood !== null;
 
@@ -36,7 +43,7 @@ export default function KairosForm({ initial, onSubmit }: Props) {
       transition={{ duration: 0.5 }}
       onSubmit={(e) => {
         e.preventDefault();
-        if (canSubmit) onSubmit({ user_input: text.trim(), mood, is_alone: alone, max_options: 3 });
+        if (canSubmit) onSubmit({ user_input: text.trim(), mood, is_alone: alone, max_options: 3, radius });
       }}
       className="mx-auto w-full max-w-2xl rounded-4xl bg-card p-6 sm:p-10"
     >
@@ -63,6 +70,15 @@ export default function KairosForm({ initial, onSubmit }: Props) {
       <div className="mt-3 flex flex-wrap gap-2">
         <Chip active={alone} onClick={() => setAlone(true)}><User size={15} /> Seul(e)</Chip>
         <Chip active={!alone} onClick={() => setAlone(false)}><Users size={15} /> Accompagné(e)</Chip>
+      </div>
+
+      <p className="mt-6 text-xs font-semibold tracking-wider text-muted">DISTANCE MAXIMALE</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {RADII.map((r) => (
+          <Chip key={r} active={radius === r} onClick={() => setRadius(r)}>
+            {r === radius && <MapPin size={15} />} {formatRadius(r)}
+          </Chip>
+        ))}
       </div>
 
       <button

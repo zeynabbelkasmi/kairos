@@ -1,11 +1,11 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from .database import all_activities, init_db
+from .database import add_completed, init_db, list_completed
 from .recommender import LLM_MODEL, LLM_PROVIDER, recommend
-from .schemas import RecommendRequest, RecommendResponse
+from .schemas import CompleteRequest, RecommendRequest, RecommendResponse
 
 
 @asynccontextmanager
@@ -25,10 +25,23 @@ app.add_middleware(
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "activities": len(all_activities()), "llm": f"{LLM_PROVIDER}:{LLM_MODEL}"}
+    return {"status": "ok", "llm": f"{LLM_PROVIDER}:{LLM_MODEL}"}
 
 
 @app.post("/api/kairos/recommend", response_model=RecommendResponse)
 async def kairos_recommend(req: RecommendRequest):
     recs, source, places_source = await recommend(req)
     return RecommendResponse(recommendations=recs, source=source, places_source=places_source)
+
+
+@app.get("/api/kairos/history")
+def kairos_history():
+    return [row.model_dump(mode="json") for row in list_completed()]
+
+
+@app.post("/api/kairos/history")
+def complete_activity(req: CompleteRequest):
+    if not req.activity_id.startswith("idea_"):
+        raise HTTPException(status_code=400, detail="Seules les activités générées peuvent être enregistrées dans l'historique.")
+    row = add_completed(req.activity_id, req.title, req.category_tag)
+    return row.model_dump(mode="json")

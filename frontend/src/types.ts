@@ -14,6 +14,13 @@ export interface Recommendation {
   lat?: number | null;
   lon?: number | null;
   distance_m?: number | null;
+  is_place?: boolean;
+  rating?: number | null;
+  user_rating_count?: number | null;
+  photo_author?: string;
+  photo_author_url?: string;
+  photo_google_maps_uri?: string;
+  opening_hours?: string;
 }
 
 export interface RecommendRequest {
@@ -21,14 +28,14 @@ export interface RecommendRequest {
   mood: string | null;
   is_alone: boolean;
   max_options: number;
-  lat?: number;
-  lon?: number;
+  lat?: number | null;
+  lon?: number | null;
   radius?: number;
 }
 
 export interface RecommendResponse {
   recommendations: Recommendation[];
   source?: "llm" | "fallback" | "mock";
-  places_source?: "osm" | "osm_match" | "no_match" | "catalogue" | "none";
-  position?: "gps" | "rabat";
+  places_source?: "google" | "maps" | "google_no_match" | "google_not_configured" | "google_error" | "maps_error" | "no_location";
+  position?: "gps" | "unavailable";
 }
