@@ -26,7 +26,6 @@ export interface Recommendation {
 export interface RecommendRequest {
   user_input: string;
   mood: string | null;
-  is_alone: boolean;
   max_options: number;
   lat?: number | null;
   lon?: number | null;

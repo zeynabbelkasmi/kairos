@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
-import { User, Users } from "lucide-react";
 import type { RecommendRequest } from "../types";
 
 const MOODS = ["Fatigué(e)", "Créatif(ve)", "En quête de calme", "Plein d'énergie"];
@@ -34,7 +33,6 @@ function Group({ legend, children }: { legend: string; children: ReactNode }) {
 export default function KairosForm({ initial, onSubmit }: Props) {
   const [text, setText] = useState(initial?.user_input ?? "");
   const [mood, setMood] = useState<string | null>(initial?.mood ?? null);
-  const [alone, setAlone] = useState(initial?.is_alone ?? true);
 
   const canSubmit = text.trim().length > 0 || mood !== null;
 
@@ -46,7 +44,7 @@ export default function KairosForm({ initial, onSubmit }: Props) {
       transition={{ duration: 0.4 }}
       onSubmit={(e) => {
         e.preventDefault();
-        if (canSubmit) onSubmit({ user_input: text.trim(), mood, is_alone: alone, max_options: 3 });
+        if (canSubmit) onSubmit({ user_input: text.trim(), mood, max_options: 3 });
       }}
       className="mx-auto w-full max-w-2xl rounded-2xl bg-surface p-6 sm:p-10"
     >
@@ -66,11 +64,6 @@ export default function KairosForm({ initial, onSubmit }: Props) {
         {MOODS.map((m) => (
           <Chip key={m} active={mood === m} onClick={() => setMood(mood === m ? null : m)}>{m}</Chip>
         ))}
-      </Group>
-
-      <Group legend="Avec qui">
-        <Chip active={alone} onClick={() => setAlone(true)}><User size={15} /> Seul(e)</Chip>
-        <Chip active={!alone} onClick={() => setAlone(false)}><Users size={15} /> Accompagné(e)</Chip>
       </Group>
 
       <button

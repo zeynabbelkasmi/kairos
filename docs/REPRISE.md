@@ -242,6 +242,11 @@ recherche à Rabat (cafés, et mélange lieu + idées).
 
 **Vérifié à Rabat :** 8 lieux, tous ouverts (ou sans horaires connus), de 620 m à 2,3 km.
 
+- **Choix « Avec qui » retiré** : il n'était transmis à l'IA que sous la forme « Seul(e): True »,
+  sans consigne, et n'influençait ni les lieux ni les idées de secours. Le champ `is_alone` a
+  été retiré du frontend, de `schemas.py` et du prompt (`recommender.py`). Un ancien client qui
+  l'envoie encore n'est pas bloqué : FastAPI ignore les champs en trop.
+
 ---
 
 ## 5. Configuration (`backend/.env`)

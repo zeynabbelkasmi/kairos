@@ -237,7 +237,7 @@ async def generate_activities(req: RecommendRequest) -> list[Cand]:
             )},
             {"role": "user", "content": (
                 f"Demande: {req.user_input or 'une pause'}. Humeur: {req.mood or 'non précisée'}. "
-                f"Seul(e): {req.is_alone}. Évite ces activités déjà faites: {previous}. "
+                f"Évite ces activités déjà faites: {previous}. "
                 + ("/no_think" if LLM_PROVIDER == "local" else "")
             )},
         ],

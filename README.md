@@ -19,8 +19,8 @@ more**, so you can choose quickly, put the phone down and go.
 
 ## What Kairos does
 
-- **Understands your request**: your mood, what you feel like doing ("a quiet café to read"),
-  and whether you're alone or with someone.
+- **Understands your request**: your mood and what you feel like doing ("a quiet café to
+  read").
 - **Generates tailored activities** with an LLM, each with steps to follow, instead of picking
   from a fixed catalog.
 - **Finds real places around you** (cafés, parks, museums, libraries, galleries) within 5 km.
@@ -31,7 +31,7 @@ more**, so you can choose quickly, put the phone down and go.
   geolocation it suggests activities with no place attached.
 
 <p align="center">
-  <img src="docs/images/formulaire.png" alt="Kairos form: free text, current energy and who you're with" width="620">
+  <img src="docs/images/formulaire.png" alt="Kairos form: free text and current energy" width="620">
   &nbsp;
   <img src="docs/images/mobile.png" alt="Kairos on mobile" width="190">
 </p>
@@ -135,7 +135,6 @@ Browser (React)  ──  mood, text, location  ────────▶  POST
 {
   "user_input": "J'ai envie d'un café calme pour lire",
   "mood": "Fatigué(e)",
-  "is_alone": true,
   "max_options": 3,
   "lat": 34.0209,
   "lon": -6.8416

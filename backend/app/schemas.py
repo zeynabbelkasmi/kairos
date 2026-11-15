@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field
 class RecommendRequest(BaseModel):
     user_input: str = ""
     mood: Optional[str] = None
-    is_alone: bool = True
     max_options: int = Field(3, ge=3, le=3)
     lat: Optional[float] = None  # position de l'utilisateur (gÃ©olocalisation navigateur)
     lon: Optional[float] = None
