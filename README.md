@@ -7,7 +7,7 @@ and Kairos suggests **three concrete things to do away from the screen**: simple
 you can start right away, and real places near you.
 
 <p align="center">
-  <img src="docs/images/resultats.png" alt="Three Kairos suggestions: a sensory walk, a visual journal and a logic puzzle" width="900">
+  <img src="docs/images/resultats.png" alt="Three illustrated Kairos suggestions: a quiet walk to listen to the neighborhood, a paper-folding idea and a memory game" width="900">
 </p>
 
 > The app's interface is in French.
@@ -34,10 +34,24 @@ more**, so you can choose quickly, put the phone down and go.
   geolocation it suggests activities with no place attached.
 
 <p align="center">
-  <img src="docs/images/formulaire.png" alt="Kairos form: free text and current energy" width="620">
+  <img src="docs/images/formulaire.png" alt="Kairos home screen: a wooden shelf illustration with a sleeping phone, above the form for free text and current energy" width="620">
   &nbsp;
   <img src="docs/images/mobile.png" alt="Kairos on mobile" width="190">
 </p>
+
+## Look and feel
+
+Kairos should feel warm and unhurried, more like a cozy notebook than a productivity tool.
+
+- **Soft pastel palette**: a blush pink header, a warm white background, and three accent colors,
+  one per kind of idea: mint for going out, coral for creating, sunny yellow for discovering.
+- **Hand-drawn style illustrations**: flat shapes with a warm outline, drawn as inline SVG. The
+  home screen shows a wooden shelf where the phone lies face down, asleep, next to a cup of tea,
+  books, a plant and pencils. Each activity card gets a small scene for its category.
+- **Friendly type**: the name and the gentle prompts ("Inspire… expire…") are in a handwritten
+  script (Dancing Script); everything else uses the rounded Nunito.
+- **Readable first**: text and buttons use deeper shades of the accent colors so they stay easy
+  to read, and animations respect the system's reduced-motion setting.
 
 ## Quick start
 
@@ -127,7 +141,7 @@ Browser (React)  ──  mood, text, location  ────────▶  POST
 | Part | Technologies |
 |------|--------------|
 | Backend | Python, FastAPI, SQLModel (SQLite), httpx |
-| Frontend | React, TypeScript, Vite, Tailwind CSS, Framer Motion |
+| Frontend | React, TypeScript, Vite, Tailwind CSS, Framer Motion, inline SVG illustrations |
 | AI | Ollama Cloud, Google Gemini or a local OpenAI-compatible LLM |
 | Places | Google Places API (New) or Google Maps search |
 | Films | IMDb (GraphQL endpoint of imdb.com) |
@@ -176,7 +190,7 @@ backend/app/
 frontend/src/
   App.tsx            Main screen
   api.ts             Backend calls and geolocation
-  components/        Form, cards, steps dialog, loading animation
+  components/        Form, cards, steps dialog, loading animation, illustrations
 docs/
   REPRISE.md         Project history and handover guide (in French)
 ```

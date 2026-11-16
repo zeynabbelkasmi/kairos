@@ -12,8 +12,8 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors ${
-        active ? "border-ink bg-ink text-paper" : "border-line bg-transparent text-ink hover:border-ink/40"
+      className={`flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors ${
+        active ? "border-sun bg-sun text-ink" : "border-line bg-transparent text-ink hover:border-sun"
       }`}
     >
       {children}
@@ -24,7 +24,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 function Group({ legend, children }: { legend: string; children: ReactNode }) {
   return (
     <fieldset className="mt-7">
-      <legend className="text-sm font-medium text-ink">{legend}</legend>
+      <legend className="text-sm font-bold text-ink">{legend}</legend>
       <div className="mt-3 flex flex-wrap gap-2">{children}</div>
     </fieldset>
   );
@@ -46,9 +46,9 @@ export default function KairosForm({ initial, onSubmit }: Props) {
         e.preventDefault();
         if (canSubmit) onSubmit({ user_input: text.trim(), mood, max_options: 3 });
       }}
-      className="mx-auto w-full max-w-2xl rounded-2xl bg-surface p-6 sm:p-10"
+      className="mx-auto w-full max-w-2xl rounded-3xl bg-surface p-6 shadow-soft sm:p-10"
     >
-      <label htmlFor="prompt" className="block font-serif text-2xl leading-snug text-ink">
+      <label htmlFor="prompt" className="block text-2xl font-extrabold leading-snug text-ink">
         Comment te sens-tu, et de quoi as-tu envie&nbsp;?
       </label>
       <textarea
@@ -57,7 +57,7 @@ export default function KairosForm({ initial, onSubmit }: Props) {
         onChange={(e) => setText(e.target.value)}
         rows={3}
         placeholder="Je suis saturée d'écrans, j'ai besoin de prendre l'air…"
-        className="mt-5 w-full resize-none rounded-xl border border-line bg-paper/60 p-4 text-[15px] leading-relaxed text-ink placeholder:text-muted/70 focus:border-moss focus:outline-none"
+        className="mt-5 w-full resize-none rounded-xl border border-line bg-blush/50 p-4 text-[15px] leading-relaxed text-ink placeholder:text-muted/80 focus:border-coral focus:outline-none"
       />
 
       <Group legend="Ton énergie du moment">
@@ -69,7 +69,7 @@ export default function KairosForm({ initial, onSubmit }: Props) {
       <button
         type="submit"
         disabled={!canSubmit}
-        className="mt-10 w-full rounded-full bg-ink px-6 py-4 text-[15px] font-medium text-paper transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
+        className="mt-10 w-full rounded-full bg-coral-deep px-6 py-4 text-[15px] font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
       >
         Me proposer trois idées
       </button>

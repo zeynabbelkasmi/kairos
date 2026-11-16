@@ -1,13 +1,14 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { MapPin, Play, ExternalLink, Trees, Palette, BookOpen, Check, Star, Film } from "lucide-react";
 import type { Recommendation, TagColor } from "../types";
+import { CategoryIllustration } from "./Illustrations";
 
 // Chaque catégorie a sa teinte : bande latérale, icône, étiquette.
 const CATEGORY: Record<TagColor, { hue: string; tint: string; Icon: typeof Trees }> = {
-  sauge: { hue: "#5F7D5A", tint: "#DCE5D6", Icon: Trees },
-  peche: { hue: "#A86A28", tint: "#EFE0C9", Icon: Palette },
-  lilas: { hue: "#6E6388", tint: "#E3DCEC", Icon: BookOpen },
+  sauge: { hue: "#1F8574", tint: "#D9F3EA", Icon: Trees },
+  peche: { hue: "#C64A36", tint: "#FFE3DC", Icon: Palette },
+  lilas: { hue: "#8A5F00", tint: "#FFF0C7", Icon: BookOpen },
 };
 
 const sentenceCase = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s);
@@ -39,15 +40,13 @@ export default function KairosCard({ rec, index, onStart, onDone }: Props) {
       initial={reduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1, duration: 0.5, ease: "easeOut" }}
-      className="relative flex flex-col overflow-hidden rounded-xl bg-surface"
+      className="relative flex flex-col overflow-hidden rounded-2xl bg-surface shadow-soft"
     >
-      <span aria-hidden className="absolute inset-y-0 left-0 w-1" style={{ backgroundColor: hue }} />
-
       {rec.is_film && (
         // Posters are portrait: shown whole on a tinted band rather than cropped.
         <div className="flex aspect-[5/4] items-center justify-center overflow-hidden py-4" style={{ backgroundColor: tint }}>
           {imgError || !rec.image_url ? (
-            <Film size={44} strokeWidth={1.25} style={{ color: hue }} />
+            <CategoryIllustration color={color} className="h-full w-auto" />
           ) : (
             <img
               src={rec.image_url}
@@ -63,8 +62,8 @@ export default function KairosCard({ rec, index, onStart, onDone }: Props) {
       {rec.is_place && (
         <div className="aspect-[5/4] overflow-hidden">
           {imgError || !rec.image_url ? (
-            <div className="flex h-full w-full items-center justify-center" style={{ backgroundColor: tint }}>
-              <Icon size={44} strokeWidth={1.25} style={{ color: hue }} />
+            <div className="flex h-full w-full items-center justify-center p-6" style={{ backgroundColor: tint }}>
+              <CategoryIllustration color={color} className="h-full w-auto" />
             </div>
           ) : (
             <img
@@ -78,19 +77,25 @@ export default function KairosCard({ rec, index, onStart, onDone }: Props) {
         </div>
       )}
 
-      <div className="flex flex-1 flex-col p-6 pl-7">
-        <p className="inline-flex items-center gap-1.5 text-[13px] font-medium" style={{ color: hue }}>
+      {!rec.is_film && !rec.is_place && (
+        <div className="flex aspect-[2/1] items-center justify-center p-5" style={{ backgroundColor: tint }}>
+          <CategoryIllustration color={color} className="h-full w-auto" />
+        </div>
+      )}
+
+      <div className="flex flex-1 flex-col p-6">
+        <p className="inline-flex items-center gap-1.5 w-fit rounded-full px-3 py-1 text-[13px] font-bold" style={{ color: hue, backgroundColor: tint }}>
           <TagIcon size={14} strokeWidth={2} /> {sentenceCase(rec.category_tag)}
         </p>
 
-        <h3 className="mt-3 font-serif text-[1.4rem] font-medium leading-tight text-ink">{rec.title}</h3>
+        <h3 className="mt-3 text-[1.35rem] font-extrabold leading-tight text-ink">{rec.title}</h3>
 
         {rec.is_film ? (
           <div className="mt-3 space-y-2 text-sm text-muted">
             <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
               {rec.rating != null && (
                 <span className="inline-flex items-center gap-1 font-semibold text-ink">
-                  <Star size={14} fill={hue} stroke={hue} /> {rec.rating.toFixed(1).replace(".", ",")}/10
+                  <Star size={14} fill="#FFD66B" stroke="#C99A1E" /> {rec.rating.toFixed(1).replace(".", ",")}/10
                 </span>
               )}
               {rec.user_rating_count != null && <span>{formatVotes(rec.user_rating_count)} sur IMDb</span>}
@@ -103,7 +108,7 @@ export default function KairosCard({ rec, index, onStart, onDone }: Props) {
             {rec.rating != null && (
               <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span className="inline-flex items-center gap-1 font-semibold text-ink">
-                  <Star size={14} fill={hue} stroke={hue} /> {rec.rating.toFixed(1).replace(".", ",")}
+                  <Star size={14} fill="#FFD66B" stroke="#C99A1E" /> {rec.rating.toFixed(1).replace(".", ",")}
                 </span>
                 <span>{rec.user_rating_count ?? 0} avis</span>
                 {rec.distance_m != null && (
@@ -124,7 +129,7 @@ export default function KairosCard({ rec, index, onStart, onDone }: Props) {
               href={rec.imdb_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+              className="flex items-center justify-center gap-2 rounded-full bg-coral-deep px-5 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90"
             >
               Voir sur IMDb <ExternalLink size={15} />
             </a>
@@ -133,14 +138,14 @@ export default function KairosCard({ rec, index, onStart, onDone }: Props) {
               href={rec.maps_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+              className="flex items-center justify-center gap-2 rounded-full bg-coral-deep px-5 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90"
             >
               Ouvrir dans Google Maps <ExternalLink size={15} />
             </a>
           ) : (
             <button
               onClick={() => onStart(rec)}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-coral-deep px-5 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90"
             >
               <Play size={15} /> Voir les étapes
             </button>

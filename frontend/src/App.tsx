@@ -5,6 +5,7 @@ import KairosForm from "./components/KairosForm";
 import BreathingLoader from "./components/BreathingLoader";
 import KairosCard from "./components/KairosCard";
 import InstructionModal from "./components/InstructionModal";
+import { HeroIllustration } from "./components/Illustrations";
 import { fetchHistory, fetchRecommendations, markActivityDone } from "./api";
 import type { Recommendation, RecommendRequest } from "./types";
 
@@ -65,30 +66,37 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-12 sm:px-8 sm:py-20">
-      <header className="mx-auto mb-14 max-w-2xl text-center">
-        <motion.h1
-          initial={{ opacity: 0, letterSpacing: "0.08em" }}
-          animate={{ opacity: 1, letterSpacing: "-0.02em" }}
-          transition={{ duration: 1.6, ease: "easeOut" }}
-          className="font-serif text-6xl font-normal text-ink sm:text-7xl"
-        >
-          Kairos
-        </motion.h1>
-        <p className="mt-3 font-serif text-lg italic text-muted">καιρός, le moment opportun</p>
+    <div className="min-h-screen">
+      <header className={`bg-blush px-4 pt-12 text-center sm:pt-16 ${phase === "form" ? "" : "pb-10"}`}>
+        <div className="flex items-center justify-center gap-5">
+          <span aria-hidden className="hidden w-20 border-t-[3px] border-dotted border-sun sm:block" />
+          <motion.h1
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+            className="font-script text-7xl font-bold leading-none text-coral sm:text-8xl"
+          >
+            Kairos
+          </motion.h1>
+          <span aria-hidden className="hidden w-20 border-t-[3px] border-dotted border-sun sm:block" />
+        </div>
+        <p className="mt-3 text-base font-semibold text-muted">καιρός, le moment opportun</p>
         <button
           onClick={async () => { setHistory(await fetchHistory()); setShowHistory(!showHistory); }}
           aria-expanded={showHistory}
-          className="mt-6 inline-flex items-center gap-2 text-sm text-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+          className="mt-5 inline-flex items-center gap-2 rounded-full border-2 border-sun px-4 py-1.5 text-sm font-semibold text-ink transition-colors hover:bg-sun/40"
         >
           <History size={15} /> {showHistory ? "Masquer mes activités faites" : "Mes activités faites"}
         </button>
+        {phase === "form" && (
+          <HeroIllustration className="relative z-10 mx-auto -mb-6 mt-6 block w-full max-w-2xl sm:-mb-8" />
+        )}
       </header>
 
-      <main className="mx-auto max-w-6xl">
+      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-8 sm:py-16">
         {showHistory && (
-          <section className="mx-auto mb-10 max-w-2xl rounded-2xl bg-surface p-6">
-            <h2 className="font-serif text-xl text-ink">Activités faites</h2>
+          <section className="mx-auto mb-10 max-w-2xl rounded-2xl bg-surface p-6 shadow-soft">
+            <h2 className="text-xl font-extrabold text-ink">Activités faites</h2>
             {history.length ? (
               <ul className="mt-4 divide-y divide-line">
                 {history.map((item) => (
@@ -109,8 +117,8 @@ export default function App() {
           {phase === "results" && (
             <motion.section key="results" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               {notice && (
-                <p role="status" className="mx-auto mb-10 flex max-w-2xl items-start gap-3 rounded-xl border border-line px-5 py-4 text-sm leading-relaxed text-muted">
-                  <MapPinOff size={16} className="mt-0.5 shrink-0" /> {notice}
+                <p role="status" className="mx-auto mb-10 flex max-w-2xl items-start gap-3 rounded-xl border border-line bg-surface px-5 py-4 text-sm leading-relaxed text-muted">
+                  <MapPinOff size={16} className="mt-0.5 shrink-0 text-coral-deep" /> {notice}
                 </p>
               )}
               <div className={`grid items-start gap-5 ${recs.length === 2 ? "mx-auto max-w-4xl md:grid-cols-2" : "md:grid-cols-3"}`}>
@@ -118,18 +126,18 @@ export default function App() {
                   <KairosCard key={r.id} rec={r} index={i} onStart={setActive} onDone={markDone} />
                 ))}
               </div>
-              <p className="mt-14 text-center font-serif text-xl italic text-ink">Choisis-en une, pose ton téléphone, et vas-y.</p>
+              <p className="mt-14 text-center font-script text-3xl font-bold text-coral-deep">Choisis-en une, pose ton téléphone, et vas-y.</p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <button
                   onClick={() => setPhase("form")}
-                  className="flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm text-ink transition-colors hover:border-ink/40"
+                  className="flex items-center gap-2 rounded-full border-2 border-sun px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-sun/40"
                 >
                   <ArrowLeft size={15} /> Modifier ma demande
                 </button>
                 {lastReq && (
                   <button
                     onClick={() => run(lastReq)}
-                    className="flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm text-ink transition-colors hover:border-ink/40"
+                    className="flex items-center gap-2 rounded-full border-2 border-sun px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-sun/40"
                   >
                     <RefreshCw size={15} /> Trois autres idées
                   </button>
